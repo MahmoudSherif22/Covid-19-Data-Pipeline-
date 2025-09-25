@@ -1,7 +1,7 @@
 # Covid-19-Data-Pipeline-
 This project implements an ETL data pipeline for COVID-19 case data, orchestrated with Apache Airflow and containerized using Docker. The pipeline ingests raw CSV files, processes them with Apache Spark, stages them in PostgreSQL, and transforms them into a Star Schema Data Warehouse for analytics and reporting with Power BI.
 📌 Project Workflow
-<img width="1048" height="685" alt="Screenshot (1045)" src="https://github.com/user-attachments/assets/d554470e-539b-45de-8984-8ce0cee9d01f" />
+<img width="600" height="400" alt="Screenshot (1045)" src="https://github.com/user-attachments/assets/d554470e-539b-45de-8984-8ce0cee9d01f" />
 
 ## Data Ingestion
 
@@ -42,3 +42,6 @@ PostgreSQL → Staging & Data Warehouse
 Docker → Containerization
 
 Power BI → Visualization
+
+## Covid 19 Data 
+https://www.kaggle.com/datasets?search=covid
