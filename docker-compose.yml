@@ -1,0 +1,81 @@
+x-airflow-common: &airflow-common
+  image: custom-airflow:2.7.3
+  build: .
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: Asia/Cairo
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'   # set 'true' if you prefer
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
+    AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
+    _PIP_ADDITIONAL_REQUIREMENTS: ""
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ./spark_jobs:/opt/airflow/spark_jobs
+    - /home/user/csv_data:/opt/data
+    - /home/mahmoud1/jars/postgresql-42.7.3.jar:/opt/spark/jars/postgresql-42.7.3.jar
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    - postgres
+    
+networks:
+  spark-airflow-network:
+    external: true
+    
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    networks:
+      - spark-airflow-network 
+  airflow-webserver:
+    <<: *airflow-common
+    command: airflow webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      - airflow-scheduler
+      - postgres
+    networks:
+      - spark-airflow-network 
+  airflow-scheduler:
+    <<: *airflow-common
+    command: airflow scheduler
+    depends_on:
+      - postgres
+    networks:
+      - spark-airflow-network 
+  # one-time init (optional)
+  airflow-init:
+    <<: *airflow-common
+    command: bash -lc "airflow db migrate && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.org || true"
+    depends_on:
+      - postgres
+    networks:
+      - spark-airflow-network 
+  # Postgres staging con
+  postgres_staging:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: staging_user
+      POSTGRES_PASSWORD: staging_pass
+      POSTGRES_DB: staging_db
+    ports:
+      - "5433:5432"   # avoid conflict with Airflow’s Postgres
+    networks:
+      - spark-airflow-network  
+      
+volumes:
+  postgres-db-volume:
+  
+  
+
+
+
